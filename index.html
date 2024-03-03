@@ -6,6 +6,7 @@
     <title>Chin ❤️ Mark Detection</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <style>
         body {
             background-color: #fce4ec; /* Light pink background */
@@ -201,12 +202,9 @@
     
         async function changeCamera() {
             const selectedCamera = document.getElementById("cameraSelect").value;
-            cameraInitialized = false;
-            await webcam.stop();
-            webcam = new tmImage.Webcam(200, 200, true, selectedCamera);
-            await webcam.setup();
-            await webcam.play();
-            cameraInitialized = true;
+            const constraints = { video: { facingMode: selectedCamera } };
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            webcam.video.srcObject = stream;
         }
     
         function openCameraPermissionAlert() {
@@ -216,6 +214,6 @@
         function closeCameraPermissionAlert() {
             document.getElementById("cameraPermissionAlert").style.display = "none";
         }
-    </script>        
+    </script>      
 </body>
 </html>
