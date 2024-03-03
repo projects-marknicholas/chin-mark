@@ -7,49 +7,13 @@
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        *{
-            transition: ease-in-out all .1s;
-        }
         body {
+            background-color: #fce4ec; /* Light pink background */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; /* Prevent scrollbars */
-        }
-
-        .blue-theme {
-            background-color: #c5cae9; /* Blue theme */
-            color: #1a237e; /* Dark blue text */
-        }
-
-        .black-theme {
-            background-color: #212121; /* Black theme */
-            color: #fafafa; /* White text */
-        }
-
-        .pink-theme {
-            background-color: #f48fb1; /* Pink theme */
-            color: #880e4f; /* Dark pink text */
-        }
-
-        .heart-rain {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Allow clicks to go through */
-            z-index: 9999; /* Ensure it's above other content */
-            animation: heartAnimation 3s infinite linear;
-            display: none; /* Initially hidden */
-        }
-
-        @keyframes heartAnimation {
-            0% {
-                transform: translateY(-100%);
-            }
-            100% {
-                transform: translateY(100%);
-            }
         }
 
         h1 {
+            color: #c2185b; /* Dark pink */
             margin-top: 50px;
         }
 
@@ -65,6 +29,7 @@
 
         #webcam-container {
             margin-top: 30px;
+            background-color: #fff; /* White */
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow effect */
@@ -72,6 +37,7 @@
 
         #label-container {
             margin-top: 20px;
+            color: #880e4f; /* Dark pink text */
         }
 
         #cameraOptions {
@@ -92,6 +58,7 @@
         .prediction-container {
             margin-top: 20px;
             font-size: 1.2rem;
+            color: #c2185b; /* Dark pink */
         }
 
         /* Custom alert box style */
@@ -105,7 +72,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999; /* Ensure it's above other content */
         }
 
         .alert-box {
@@ -143,11 +109,10 @@
     </style>
 </head>
 <body>
-    <div class="heart-rain" id="heartRain"></div>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12 col-md-6 text-center">
-                <h1>Chin ❤️ Mark Detection</h1>
+                <h1 class="mt-5">Chin ❤️ Mark Detection</h1>
                 <button id="startButton" type="button" class="btn btn-primary mt-3" onclick="init()">Start</button>
                 <div id="webcam-container" class="mt-3"></div>
                 <div id="label-container" class="mt-3"></div>
@@ -190,7 +155,9 @@
                 maxPredictions = model.getTotalClasses();
 
                 const flip = true;
-                webcam = new tmImage.Webcam(200, 200, flip);
+                const cameraSelect = document.getElementById("cameraSelect");
+                const selectedCamera = cameraSelect.value;
+                webcam = new tmImage.Webcam(200, 200, flip, selectedCamera);
                 await webcam.setup();
                 await webcam.play();
                 startButton.style.display = "none";
@@ -220,23 +187,8 @@
                     maxProbIndex = i;
                 }
             }
-            const classPrediction = prediction[maxProbIndex].className;
+            const classPrediction = prediction[maxProbIndex].className + ": " + prediction[maxProbIndex].probability.toFixed(2);
             labelContainer.childNodes[0].innerHTML = classPrediction;
-
-            // Change theme and trigger animation based on prediction
-            const body = document.body;
-            const heartRain = document.getElementById("heartRain");
-            body.classList.remove("blue-theme", "black-theme", "pink-theme");
-            heartRain.style.display = "none"; // Hide heart rain animation by default
-
-            if (classPrediction === "Chin Chin Marinay") {
-                body.classList.add("blue-theme");
-            } else if (classPrediction === "Mark Nicholas Razon") {
-                body.classList.add("black-theme");
-            } else if (classPrediction === "Chin ❤️ Mark") {
-                body.classList.add("pink-theme");
-                heartRain.style.display = "block"; // Show heart rain animation
-            }
         }
 
         function toggleCameraSelect() {
