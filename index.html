@@ -156,7 +156,7 @@
     
                 const flip = true;
                 const selectedCamera = document.getElementById("cameraSelect").value;
-                webcam = new tmImage.Webcam(200, 200, flip, selectedCamera);
+                webcam = new tmImage.Webcam(200, 200, flip);
                 await webcam.setup();
                 await webcam.play();
                 startButton.style.display = "none";
@@ -199,9 +199,14 @@
             }
         }
     
-        function changeCamera() {
+        async function changeCamera() {
             const selectedCamera = document.getElementById("cameraSelect").value;
-            webcam.setCamera(selectedCamera);
+            cameraInitialized = false;
+            await webcam.stop();
+            webcam = new tmImage.Webcam(200, 200, true, selectedCamera);
+            await webcam.setup();
+            await webcam.play();
+            cameraInitialized = true;
         }
     
         function openCameraPermissionAlert() {
@@ -211,6 +216,6 @@
         function closeCameraPermissionAlert() {
             document.getElementById("cameraPermissionAlert").style.display = "none";
         }
-    </script>    
+    </script>        
 </body>
 </html>
