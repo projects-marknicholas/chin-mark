@@ -261,39 +261,50 @@
         let cameraInitialized = false;
         let selectedCategory = "";
     
-        async function init() {
-            showLoadingScreen(); // Show loading screen
-            cameraInitialized = false; // Reset the flag to trigger re-initialization
-            const startButton = document.getElementById("startButton");
-            startButton.textContent = "Camera is opening...";
-            const modelURL = getModelURL(selectedCategory);
-            const metadataURL = modelURL + "metadata.json";
-            model = await tmImage.load(modelURL + "model.json", metadataURL);
-            maxPredictions = model.getTotalClasses();
+async function init() {
+    showLoadingScreen(); // Show loading screen
+    cameraInitialized = false; // Reset the flag to trigger re-initialization
+    const startButton = document.getElementById("startButton");
+    startButton.textContent = "Camera is opening...";
+    const modelURL = getModelURL(selectedCategory);
+    const metadataURL = modelURL + "metadata.json";
+    model = await tmImage.load(modelURL + "model.json", metadataURL);
+    maxPredictions = model.getTotalClasses();
 
-            // Remove previous webcam element if exists
-            const webcamContainer = document.getElementById("webcam-container");
-            if (webcamContainer.firstChild) {
-                webcamContainer.removeChild(webcamContainer.firstChild);
-            }
+    // Remove previous webcam element if exists
+    const webcamContainer = document.getElementById("webcam-container");
+    if (webcamContainer.firstChild) {
+        webcamContainer.removeChild(webcamContainer.firstChild);
+    }
 
-            const flip = false;
-            webcam = new tmImage.Webcam(200, 200, flip);
-            await webcam.setup();
-            await webcam.play();
-            startButton.style.display = "none";
-            document.getElementById("cameraOptions").style.display = "block";
+    let flip = true; // Initial value for flip
+    webcam = new tmImage.Webcam(200, 200, flip);
+    await webcam.setup();
+    await webcam.play();
+    startButton.style.display = "none";
+    document.getElementById("cameraOptions").style.display = "block";
 
-            webcamContainer.appendChild(webcam.canvas);
-            labelContainer = document.getElementById("label-container");
-            const predictionDiv = document.createElement("div");
-            predictionDiv.classList.add("prediction-container");
-            labelContainer.appendChild(predictionDiv);
+    webcamContainer.appendChild(webcam.canvas);
+    labelContainer = document.getElementById("label-container");
+    const predictionDiv = document.createElement("div");
+    predictionDiv.classList.add("prediction-container");
+    labelContainer.appendChild(predictionDiv);
 
-            window.requestAnimationFrame(loop);
+    // Add a button to switch between front and back cameras
+    const switchCameraButton = document.createElement("button");
+    switchCameraButton.textContent = "Switch Camera";
+    switchCameraButton.addEventListener("click", async () => {
+        flip = !flip; // Toggle flip value
+        webcam.stop(); // Stop the current webcam stream
+        await webcam.setup({ facingMode: flip ? "user" : "environment" }); // Initialize new webcam instance with the opposite facing mode
+        await webcam.play(); // Start the new webcam stream
+    });
+    document.getElementById("cameraOptions").appendChild(switchCameraButton);
 
-            hideLoadingScreen(); // Hide loading screen after initialization
-        }
+    window.requestAnimationFrame(loop);
+
+    hideLoadingScreen(); // Hide loading screen after initialization
+}
 
         function showLoadingScreen() {
             document.getElementById("loadingScreen").style.display = "flex";
