@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Object Detection</title>
+    <title>Chin ❤️ Mark Detection</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -203,7 +203,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Object Detection</a>
+            <a class="navbar-brand" href="#">Chin ❤️ Mark Detection</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -261,7 +261,7 @@
         let cameraInitialized = false;
         let selectedCategory = "";
     
-async function init() {
+        async function init() {
     showLoadingScreen(); // Show loading screen
     cameraInitialized = false; // Reset the flag to trigger re-initialization
     const startButton = document.getElementById("startButton");
@@ -295,8 +295,9 @@ async function init() {
     switchCameraButton.textContent = "Switch Camera";
     switchCameraButton.addEventListener("click", async () => {
         flip = !flip; // Toggle flip value
-        webcam.stop(); // Stop the current webcam stream
-        await webcam.setup({ facingMode: flip ? "user" : "environment" }); // Initialize new webcam instance with the opposite facing mode
+        await webcam.stop(); // Stop the current webcam stream
+        webcam = new tmImage.Webcam(200, 200, flip); // Initialize new webcam instance with the opposite flip value
+        await webcam.setup();
         await webcam.play(); // Start the new webcam stream
     });
     document.getElementById("cameraOptions").appendChild(switchCameraButton);
@@ -305,6 +306,7 @@ async function init() {
 
     hideLoadingScreen(); // Hide loading screen after initialization
 }
+
 
         function showLoadingScreen() {
             document.getElementById("loadingScreen").style.display = "flex";
