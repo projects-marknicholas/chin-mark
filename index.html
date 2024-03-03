@@ -295,9 +295,7 @@
     switchCameraButton.textContent = "Switch Camera";
     switchCameraButton.addEventListener("click", async () => {
         flip = !flip; // Toggle flip value
-        await webcam.stop(); // Stop the current webcam stream
-        webcam = new tmImage.Webcam(200, 200, flip); // Initialize new webcam instance with the opposite flip value
-        await webcam.setup();
+        await webcam.setup({ facingMode: flip ? "user" : "environment" }); // Initialize new webcam instance with the opposite facing mode
         await webcam.play(); // Start the new webcam stream
     });
     document.getElementById("cameraOptions").appendChild(switchCameraButton);
@@ -306,7 +304,6 @@
 
     hideLoadingScreen(); // Hide loading screen after initialization
 }
-
 
         function showLoadingScreen() {
             document.getElementById("loadingScreen").style.display = "flex";
