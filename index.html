@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chin ❤️ Mark Detection</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        *{
+            transition: ease-in-out all .1s;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+
+        .blue-theme {
+            background-color: #c5cae9; /* Blue theme */
+            color: #1a237e; /* Dark blue text */
+        }
+
+        .black-theme {
+            background-color: #212121; /* Black theme */
+            color: #fafafa; /* White text */
+        }
+
+        .pink-theme {
+            background-color: #f48fb1; /* Pink theme */
+            color: #880e4f; /* Dark pink text */
+        }
+
+        .heart-rain {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks to go through */
+            z-index: 9999; /* Ensure it's above other content */
+            animation: heartAnimation 3s infinite linear;
+            display: none; /* Initially hidden */
+        }
+
+        @keyframes heartAnimation {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+
+        h1 {
+            margin-top: 50px;
+        }
+
+        .btn-primary {
+            background-color: #e91e63; /* Pink */
+            border-color: #e91e63; /* Pink */
+        }
+
+        .btn-primary:hover {
+            background-color: #f48fb1; /* Lighter pink on hover */
+            border-color: #f48fb1; /* Lighter pink on hover */
+        }
+
+        #webcam-container {
+            margin-top: 30px;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow effect */
+        }
+
+        #label-container {
+            margin-top: 20px;
+        }
+
+        #cameraOptions {
+            margin-top: 20px;
+            text-align: center; /* Center align the button */
+            display: none; /* Initially hidden */
+        }
+
+        #cameraSelect {
+            width: 200px;
+            margin: auto;
+        }
+
+        #startButton {
+            font-size: 1.2rem;
+        }
+
+        .prediction-container {
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        /* Custom alert box style */
+        .alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Ensure it's above other content */
+        }
+
+        .alert-box {
+            background-color: #fff; /* White background */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow effect */
+        }
+
+        .alert-title {
+            color: #e91e63; /* Pink */
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .alert-message {
+            color: #880e4f; /* Dark pink text */
+        }
+
+        .btn-allow {
+            background-color: #e91e63; /* Pink */
+            border-color: #e91e63; /* Pink */
+            color: #fff; /* White text */
+            padding: 8px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-allow:hover {
+            background-color: #f48fb1; /* Lighter pink on hover */
+            border-color: #f48fb1; /* Lighter pink on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="heart-rain" id="heartRain"></div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-6 text-center">
+                <h1>Chin ❤️ Mark Detection</h1>
+                <button id="startButton" type="button" class="btn btn-primary mt-3" onclick="init()">Start</button>
+                <div id="webcam-container" class="mt-3"></div>
+                <div id="label-container" class="mt-3"></div>
+                <div id="cameraOptions" class="mt-3">
+                    <button id="chooseCameraBtn" class="btn btn-primary" onclick="toggleCameraSelect()">Choose camera</button>
+                    <select id="cameraSelect" class="form-control mt-3">
+                        <option value="user">Front Camera</option>
+                        <option value="environment">Back Camera</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom alert box for camera permission -->
+    <div id="cameraPermissionAlert" class="alert-overlay" style="display: none;">
+        <div class="alert-box">
+            <h2 class="alert-title">Allow Camera Access</h2>
+            <p class="alert-message">To use this feature, please allow access to your camera.</p>
+            <button class="btn btn-allow" onclick="closeCameraPermissionAlert()">Allow Camera</button>
+        </div>
+    </div>
+
+    <!-- TensorFlow.js and Teachable Machine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        const URL = "https://teachablemachine.withgoogle.com/models/dLBkW3DJi/";
+        let model, webcam, labelContainer, maxPredictions;
+        let cameraInitialized = false;
+
+        async function init() {
+            if (!cameraInitialized) {
+                cameraInitialized = true;
+                const startButton = document.getElementById("startButton");
+                startButton.textContent = "Camera is opening...";
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+
+                const flip = true;
+                webcam = new tmImage.Webcam(200, 200, flip);
+                await webcam.setup();
+                await webcam.play();
+                startButton.style.display = "none";
+                document.getElementById("cameraOptions").style.display = "block";
+
+                document.getElementById("webcam-container").appendChild(webcam.canvas);
+                labelContainer = document.getElementById("label-container");
+                const predictionDiv = document.createElement("div");
+                predictionDiv.classList.add("prediction-container");
+                labelContainer.appendChild(predictionDiv);
+
+                window.requestAnimationFrame(loop);
+            }
+        }
+
+        async function loop() {
+            webcam.update();
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            let maxProbIndex = 0;
+            for (let i = 0; i < maxPredictions; i++) {
+                if (prediction[i].probability > prediction[maxProbIndex].probability) {
+                    maxProbIndex = i;
+                }
+            }
+            const classPrediction = prediction[maxProbIndex].className;
+            labelContainer.childNodes[0].innerHTML = classPrediction;
+
+            // Change theme and trigger animation based on prediction
+            const body = document.body;
+            const heartRain = document.getElementById("heartRain");
+            body.classList.remove("blue-theme", "black-theme", "pink-theme");
+            heartRain.style.display = "none"; // Hide heart rain animation by default
+
+            if (classPrediction === "Chin Chin Marinay") {
+                body.classList.add("blue-theme");
+            } else if (classPrediction === "Mark Nicholas Razon") {
+                body.classList.add("black-theme");
+            } else if (classPrediction === "Chin ❤️ Mark") {
+                body.classList.add("pink-theme");
+                heartRain.style.display = "block"; // Show heart rain animation
+            }
+        }
+
+        function toggleCameraSelect() {
+            const cameraSelect = document.getElementById("cameraSelect");
+            if (cameraSelect.style.display === "block") {
+                cameraSelect.style.display = "none";
+            } else {
+                cameraSelect.style.display = "block";
+            }
+        }
+
+        function openCameraPermissionAlert() {
+            document.getElementById("cameraPermissionAlert").style.display = "flex";
+        }
+
+        function closeCameraPermissionAlert() {
+            document.getElementById("cameraPermissionAlert").style.display = "none";
+        }
+    </script>
+</body>
+</html>
