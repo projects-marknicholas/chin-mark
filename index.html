@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chin ❤️ Mark Detection</title>
+    <title>Object Detection</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -203,7 +203,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Chin ❤️ Mark Detection</a>
+            <a class="navbar-brand" href="#">Object Detection</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -262,48 +262,38 @@
         let selectedCategory = "";
     
         async function init() {
-    showLoadingScreen(); // Show loading screen
-    cameraInitialized = false; // Reset the flag to trigger re-initialization
-    const startButton = document.getElementById("startButton");
-    startButton.textContent = "Camera is opening...";
-    const modelURL = getModelURL(selectedCategory);
-    const metadataURL = modelURL + "metadata.json";
-    model = await tmImage.load(modelURL + "model.json", metadataURL);
-    maxPredictions = model.getTotalClasses();
+            showLoadingScreen(); // Show loading screen
+            cameraInitialized = false; // Reset the flag to trigger re-initialization
+            const startButton = document.getElementById("startButton");
+            startButton.textContent = "Camera is opening...";
+            const modelURL = getModelURL(selectedCategory);
+            const metadataURL = modelURL + "metadata.json";
+            model = await tmImage.load(modelURL + "model.json", metadataURL);
+            maxPredictions = model.getTotalClasses();
 
-    // Remove previous webcam element if exists
-    const webcamContainer = document.getElementById("webcam-container");
-    if (webcamContainer.firstChild) {
-        webcamContainer.removeChild(webcamContainer.firstChild);
-    }
+            // Remove previous webcam element if exists
+            const webcamContainer = document.getElementById("webcam-container");
+            if (webcamContainer.firstChild) {
+                webcamContainer.removeChild(webcamContainer.firstChild);
+            }
 
-    let flip = true; // Initial value for flip
-    webcam = new tmImage.Webcam(200, 200, flip);
-    await webcam.setup();
-    await webcam.play();
-    startButton.style.display = "none";
-    document.getElementById("cameraOptions").style.display = "block";
+            const flip = true;
+            webcam = new tmImage.Webcam(200, 200, flip);
+            await webcam.setup();
+            await webcam.play();
+            startButton.style.display = "none";
+            document.getElementById("cameraOptions").style.display = "block";
 
-    webcamContainer.appendChild(webcam.canvas);
-    labelContainer = document.getElementById("label-container");
-    const predictionDiv = document.createElement("div");
-    predictionDiv.classList.add("prediction-container");
-    labelContainer.appendChild(predictionDiv);
+            webcamContainer.appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+            const predictionDiv = document.createElement("div");
+            predictionDiv.classList.add("prediction-container");
+            labelContainer.appendChild(predictionDiv);
 
-    // Add a button to switch between front and back cameras
-    const switchCameraButton = document.createElement("button");
-    switchCameraButton.textContent = "Switch Camera";
-    switchCameraButton.addEventListener("click", async () => {
-        flip = !flip; // Toggle flip value
-        await webcam.setup({ facingMode: flip ? "user" : "environment" }); // Initialize new webcam instance with the opposite facing mode
-        await webcam.play(); // Start the new webcam stream
-    });
-    document.getElementById("cameraOptions").appendChild(switchCameraButton);
+            window.requestAnimationFrame(loop);
 
-    window.requestAnimationFrame(loop);
-
-    hideLoadingScreen(); // Hide loading screen after initialization
-}
+            hideLoadingScreen(); // Hide loading screen after initialization
+        }
 
         function showLoadingScreen() {
             document.getElementById("loadingScreen").style.display = "flex";
