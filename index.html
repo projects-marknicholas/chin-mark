@@ -277,7 +277,7 @@
                 webcamContainer.removeChild(webcamContainer.firstChild);
             }
 
-            const flip = true;
+            const flip = false;
             webcam = new tmImage.Webcam(200, 200, flip);
             await webcam.setup();
             await webcam.play();
